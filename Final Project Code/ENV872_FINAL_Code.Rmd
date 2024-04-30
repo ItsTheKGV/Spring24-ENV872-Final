@@ -1,0 +1,202 @@
+---
+title: "ENV872 - Final"
+author: "Keanu Valibia"
+date: "2024-04-30"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+\tableofcontents
+\tableoffigures
+
+## Project Set Up
+
+```{r setup1, include=FALSE}
+
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=45), tidy=TRUE)
+
+```
+
+```{r workspace setup, error=FALSE, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(here)
+#install.packages("wbstats")
+library(wbstats)
+
+here()
+
+myTheme <- theme_classic(base_size = 11) +
+  theme(axis.text = element_text(color = "black"),
+        axis.line = element_line(color = "black"),
+        panel.background = element_rect(fill ="#EDE6E3"),  
+        panel.grid.major = element_line(color = "#36382E",  
+                                        linetype = "dotted"),  
+        plot.title = element_text(size = 15),  
+        axis.title.x = element_text(size = 13),  
+        axis.title.y = element_text(size = 13),
+        legend.position = "right")
+
+theme_set(myTheme)
+
+```
+
+## Data Import and Exploratory Data Analysis
+
+This data project utilizes data from the World Bank spanning child mortality rates, energy consumption, and
+
+```{r Data Imports, warning=FALSE, message=FALSE}
+
+#EG.USE.PCAP.KG.OE: Energy use per country in terms of kg of oil equivalent per capita
+#SH.DYN.MORT: Child mortality rates under the age of 5 per 1,000 live births
+#EN.ATM.GHGT.KT.CE: Total greenhouse gas emissions as kilotons of CO2 equivalent
+#EG.FEC.RNEW.ZS: Estimated usage of renewable energies as a percentage of total final energy consumption
+
+#Import data from World Bank API. Rename fields to make them more intuitive
+energyUse_mort <- wb_data(country = c("United Arab Emirates","United Kingdom","Argentina", "Japan", "Italy", "United States"),
+                          indicator=c("EG.USE.PCAP.KG.OE","SH.DYN.MORT","EN.ATM.GHGT.KT.CE","EG.FEC.RNEW.ZS"), start_date = 1990, end_date = 2020) %>%
+  rename(Energy_Use = EG.USE.PCAP.KG.OE, Mortality_Rate = SH.DYN.MORT, Total_GHG_Emissions = EN.ATM.GHGT.KT.CE, Renewable_Consump = EG.FEC.RNEW.ZS)
+
+#Export data as a .csv file.
+write.csv(energyUse_mort, "World_Bank_EnergyUse_Mortality.csv")
+
+```
+
+###Dataset Introductory Exploratory Analysis
+
+```{r}
+glimpse(energyUse_mort)
+```
+
+```{r Data Summary, warning=FALSE, message=FALSE}
+
+dim(energyUse_mort)
+summary(energyUse_mort)
+
+```
+
+Total Observations/Rows: 186
+Total Variables/Columns: 8
+Date Range: 1990 - 2020
+
+### Visualizations
+
+```{r Distribution Analysis}
+
+mortality_dist <- ggplot(energyUse_mort, aes(x = Mortality_Rate)) +
+  geom_histogram()
+
+mortality_dist
+
+ghg_dist <- ggplot(energyUse_mort, aes(x = Total_GHG_Emissions)) +
+  geom_histogram()
+
+ghg_dist
+
+EnergyUse_dist <- ggplot(energyUse_mort, aes(x = Energy_Use)) +
+  geom_histogram()
+
+EnergyUse_dist
+
+Renewable_Consump_dist <- ggplot(energyUse_mort, aes(x = Renewable_Consump)) +
+  geom_histogram()
+
+Renewable_Consump_dist
+```
+
+```{r}
+
+mortality_dist <- ggplot(energyUse_mort, aes(x = log(Mortality_Rate))) +
+  geom_histogram()
+
+mortality_dist
+
+ghg_dist <- ggplot(energyUse_mort, aes(x = log(Total_GHG_Emissions))) +
+  geom_histogram()
+
+ghg_dist
+
+EnergyUse_dist <- ggplot(energyUse_mort, aes(x = log(Energy_Use))) +
+  geom_histogram()
+
+EnergyUse_dist
+
+Renewable_Consump_dist <- ggplot(energyUse_mort, aes(x = log(Renewable_Consump))) +
+  geom_histogram()
+
+Renewable_Consump_dist
+
+```
+
+```{r scatterplots}
+
+renewable_consump_time <- ggplot(energyUse_mort, aes(x = date, y = Renewable_Consump, color = country)) +
+  geom_point() + 
+  labs(title = "Renewable Energy Consumption Over Time",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Renewable Energy Used (% of Total Use")
+
+renewable_consump_time
+
+energy_consump_time <- ggplot(energyUse_mort, aes(x = date, y = Energy_Use, color = country)) +
+  geom_point() + 
+  labs(title = "Energy Consumption as kg of Oil Equivalent per Capita",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Energy Consumption")
+
+energy_consump_time
+
+ghg_emissions_time <- ggplot(energyUse_mort, aes(x = date, y = Total_GHG_Emissions, color = country)) +
+  geom_point() + 
+  labs(title = "Total GhG Emissions Over Time (kt of CO2 Equivalent)",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("GhG Emissions")
+
+ghg_emissions_time
+
+mortality_time <- ggplot(energyUse_mort, aes(x = date, y = Mortality_Rate, color = country)) +
+  geom_point() + 
+  labs(title = "Mortality Rate (Under 5 per 1,000 Births) per Country Over Time",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Mortality Rate")
+
+mortality_time 
+
+```
+
+```{r multiple regression setup}
+AIC <- lm(data = energyUse_mort, log(Mortality_Rate) ~ Renewable_Consump + Energy_Use + Total_GHG_Emissions)
+AIC
+
+step(AIC)
+
+```
+
+```{r multiple regression}
+
+AICmodel <- lm(data = energyUse_mort,  log(Mortality_Rate) ~ Renewable_Consump + Energy_Use + Total_GHG_Emissions)
+summary(AICmodel)
+
+AICmodel
+```
+
+Although there is enough evidence to reject the null hypothesis, the regression coefficients seem to oddly indicate that increases in both renewable energy consumption and total energy use seems to correlate to increased mortality rates, while a decrease in total greenhouse gas emissions seem to correlate with a decrease in mortality rates for every increase in total greenhouse gas emissions.
+
+All of these regression coefficients are statistically significant, with renewable consumption and total ghg emissions significant at the 5 percent level, and energy use significant at the 1 percent level.
+
+However, there are a few things to point out. Quantitatively, the R-Squared is only 0.056, which means that only about 5.6% of variance in the model is explaned by this model, indicating drastic underfit of data. Additional data will be needed to raise this R-Squared to an acceptable level without overfitting the data.
+
+Qualitatively, there are quite a few exogenous factors missing from the model that may help explain or even drastically change these results. Perhaps increases in energy consumption and energy use may correlate to higher mortality rates simply because of larger populations. Perhaps there are other factors within individual countries' economies that may explain higher mortality rates such as crime rates, poverty rates, etc. Negative correlation between mortality rates and ghg emissions may potentially be explained better by combination of factors including total population, total gdp, etc. Countries with higher greenhouse gas emissions may emit so much more than less developed countries that the data may be skewed. Industrial countries that pollute much more than smaller, less-developed countries tend to have more advanced infrastructure to support advanced medical facilities, etc. Thus, mortality rates cannot be explained soley by these three factors alone.

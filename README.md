@@ -27,7 +27,7 @@ Final Project Code: Contains the actual code created to analyze the World Bank d
 
 Final Project Output: Contains the final knitted PDF file.
 
-File naming convention: ENV872-FINAL-<File Purpose>
+File naming convention: ENV872_FINAL_<File Purpose>
 
 ## Metadata
 
