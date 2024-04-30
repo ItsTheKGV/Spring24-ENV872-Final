@@ -1,0 +1,120 @@
+---
+title: "ENV872 - Final"
+author: "Keanu Valibia"
+date: "2024-04-30"
+output: pdf_document
+---
+
+\tableofcontents
+\tableoffigures
+
+## Project Set Up
+
+```{r setup1, include=FALSE}
+
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=45), tidy=TRUE)
+
+```
+
+```{r workspace setup, error=FALSE, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(here)
+#install.packages("wbstats")
+library(wbstats)
+
+here()
+
+myTheme <- theme_classic(base_size = 11) +
+  theme(axis.text = element_text(color = "black"),
+        axis.line = element_line(color = "black"),
+        panel.background = element_rect(fill ="#EDE6E3"),  
+        panel.grid.major = element_line(color = "#36382E",  
+                                        linetype = "dotted"),  
+        plot.title = element_text(size = 15),  
+        axis.title.x = element_text(size = 13),  
+        axis.title.y = element_text(size = 13),
+        legend.position = "right")
+
+theme_set(myTheme)
+
+```
+
+## Data Import and Exploratory Data Analysis
+
+```{r Data Imports, warning=FALSE, message=FALSE}
+
+#EG.USE.PCAP.KG.OE: 
+#SH.DYN.MORT: 
+#EN.ATM.GHGT.KT.CE: 
+#EG.FEC.RNEW.ZS: 
+
+#Import data from World Bank API. Rename fields to make them more intuitive
+energyUse_mort <- wb_data(country = c("United Arab Emirates","United Kingdom","Argentina", "Japan", "Italy", "United States"),
+                          indicator=c("EG.USE.PCAP.KG.OE","SH.DYN.MORT","EN.ATM.GHGT.KT.CE","EG.FEC.RNEW.ZS"), start_date = 1990, end_date = 2020) %>%
+  rename(Energy_Use = EG.USE.PCAP.KG.OE, Mortality_Rate = SH.DYN.MORT, Total_GHG_Emissions = EN.ATM.GHGT.KT.CE, Renewable_Consump = EG.FEC.RNEW.ZS)
+
+```
+
+###Summary indicators
+
+Total Observations/Rows: 13,888
+Total Variables/Columns: 8
+Date Range: 1960 - 2023
+
+```{r Data Summary, warning=FALSE, message=FALSE}
+
+dim(energyUse_mort)
+summary(energyUse_mort)
+
+```
+
+### Visualizations
+
+```{r scatterplots}
+
+renewable_consump_time <- ggplot(energyUse_mort, aes(x = date, y = Renewable_Consump, color = country)) +
+  geom_point() + 
+  labs(title = "Renewable Energy Consumption Over Time",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Renewable Energy Consumption (% of Final Total Consumption")
+
+renewable_consump_time
+
+renewable_consump_time <- ggplot(energyUse_mort, aes(x = date, y = Energy_Use, color = country)) +
+  geom_point() + 
+  labs(title = "Renewable Energy Consumption Over Time",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Renewable Energy Consumption (% of Final Total Consumption")
+
+renewable_consump_time
+
+renewable_consump_time <- ggplot(energyUse_mort, aes(x = date, y = Total_GHG_Emissions, color = country)) +
+  geom_point() + 
+  labs(title = "Renewable Energy Consumption Over Time",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Renewable Energy Consumption (% of Final Total Consumption")
+
+renewable_consump_time
+
+renewable_consump_time <- ggplot(energyUse_mort, aes(x = date, y = Mortality_Rate, color = country)) +
+  geom_point() + 
+  labs(title = "Renewable Energy Consumption Over Time",
+       caption = "Per Country",
+       color = "Country") +
+  xlab("Year") +
+  ylab("Renewable Energy Consumption (% of Final Total Consumption")
+
+renewable_consump_time
+
+```
+
